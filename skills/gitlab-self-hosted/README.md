@@ -6,7 +6,7 @@ MR workflow via REST API v4 with PAT authentication for GitLab Server.
 
 ### 1. Create Personal Access Token
 
-1. Go to: `https://gitlab.your-company.com/-/user_settings/personal_access_tokens`
+1. Go to: `https://<your-gitlab-domain>/-/user_settings/personal_access_tokens`
 2. Create token with scope: `api`
 3. Copy token immediately (shown only once)
 
@@ -31,7 +31,7 @@ GITLAB_PROJECT_ID=""  # Optional default project
 ### Authentication Test
 
 ```bash
-./scripts/gitlab-auth-test.sh
+/gitlab-self-hosted auth
 ```
 
 Returns user info on success, error on failure.
@@ -41,11 +41,11 @@ Returns user info on success, error on failure.
 ### Get MR Details
 
 ```bash
-# With namespace (auto-prepends namespace/)
-./scripts/gitlab-mr-get.sh 123 -p "my-app"
+# With namespace (auto-prepends GITLAB_PROJECT_NAMESPACE)
+/gitlab-self-hosted get 123 my-app
 
 # With full path
-./scripts/gitlab-mr-get.sh 123 -p "group/devs/my-app"
+/gitlab-self-hosted get 123 group/subgroup/my-app
 ```
 
 **Output:** JSON with title, description, author, assignees, labels, state, branches
@@ -56,10 +56,10 @@ Returns user info on success, error on failure.
 
 ```bash
 # With namespace
-./scripts/gitlab-mr-diff.sh 123 -p "my-app"
+/gitlab-self-hosted diff 123 my-app
 
 # With full path
-./scripts/gitlab-mr-diff.sh 456 -p "group/devs/my-frontend"
+/gitlab-self-hosted diff 456 group/subgroup/my-frontend
 ```
 
 **Output:** JSON with `changes[]` array containing file diffs
@@ -70,27 +70,13 @@ Returns user info on success, error on failure.
 
 ```bash
 # Basic
-./scripts/gitlab-mr-create.sh \
-  -s "feature-branch" \
-  -t "main" \
-  -T "Add new feature" \
-  -p "my-app"
+/gitlab-self-hosted create feature-branch main "Add new feature" my-app
 
 # With description
-./scripts/gitlab-mr-create.sh \
-  -s "fix/bug-123" \
-  -t "develop" \
-  -T "Fix login issue" \
-  -d "Fixes the authentication bug reported in #123" \
-  -p "my-app"
+/gitlab-self-hosted create fix/bug-123 develop "Fix login issue" my-app "Fixes the authentication bug reported in #123"
 ```
 
-**Options:**
-- `-s, --source` - Source branch (required)
-- `-t, --target` - Target branch (required)
-- `-T, --title` - MR title (required)
-- `-d, --description` - MR description (optional)
-- `-p, --project` - Project ID/name (required)
+**Arguments:** `create <SOURCE> <TARGET> <TITLE> <PROJECT> [DESCRIPTION]`
 
 ---
 
@@ -98,10 +84,10 @@ Returns user info on success, error on failure.
 
 ```bash
 # Assign to user
-./scripts/gitlab-mr-assign.sh 123 "username" -p "my-app"
+/gitlab-self-hosted assign 123 username my-app
 
 # Unassign
-./scripts/gitlab-mr-assign.sh 123 --unassign -p "my-app"
+/gitlab-self-hosted unassign 123 my-app
 ```
 
 ---
@@ -110,7 +96,7 @@ Returns user info on success, error on failure.
 
 ```bash
 # Analyze MR without commenting - for review before deciding
-./scripts/gitlab-mr-analyze.sh 123 -p "my-app"
+/gitlab-self-hosted analyze 123 my-app
 ```
 
 **Output:** JSON with:
@@ -125,10 +111,10 @@ Returns user info on success, error on failure.
 
 ```bash
 # Simple comment
-./scripts/gitlab-mr-comment.sh 123 "LGTM!" -p "my-app"
+/gitlab-self-hosted comment 123 "LGTM!" my-app
 
 # Markdown comment
-./scripts/gitlab-mr-comment.sh 123 "## Code Review
+/gitlab-self-hosted comment 123 "## Code Review
 
 ### Issues Found
 - Missing error handling in auth module
@@ -136,21 +122,31 @@ Returns user info on success, error on failure.
 ### Suggestions
 - Add try-catch block
 
-**Status:** Needs changes" -p "my-app"
+**Status:** Needs changes" my-app
 ```
+
+---
+
+### Code Review (Full Workflow)
+
+```bash
+/gitlab-self-hosted review 123 my-app
+```
+
+Runs analyze, reads `references/code-review-workflow.md`, generates review.
 
 ---
 
 ## Multi-Repo Architecture
 
-With `GITLAB_PROJECT_NAMESPACE="group/devs"` set in `.env`:
+With `GITLAB_PROJECT_NAMESPACE="group/subgroup"` set in `.env`:
 
 | Command | Resolves To |
 |---------|-------------|
-| `-p "my-app"` | `group/devs/my-app` |
-| `-p "my-frontend"` | `group/devs/my-frontend` |
-| `-p "my-api-gateway"` | `group/devs/my-api-gateway` |
-| `-p "group/devs/other-repo"` | `group/devs/other-repo` (full path used as-is) |
+| `my-app` | `group/subgroup/my-app` |
+| `my-frontend` | `group/subgroup/my-frontend` |
+| `my-api-gateway` | `group/subgroup/my-api-gateway` |
+| `group/subgroup/other-repo` | `group/subgroup/other-repo` (full path used as-is) |
 
 ---
 
@@ -158,17 +154,17 @@ With `GITLAB_PROJECT_NAMESPACE="group/devs"` set in `.env`:
 
 ```bash
 # 1. Analyze MR (read-only, all info in one call)
-./scripts/gitlab-mr-analyze.sh 123 -p "my-app" | jq '.summary, .stats'
+/gitlab-self-hosted analyze 123 my-app
 
-# 2. Review changes
-./scripts/gitlab-mr-analyze.sh 123 -p "my-app" | jq '.files[].path'
+# 2. Full review (analyze + generate review + post comment)
+/gitlab-self-hosted review 123 my-app
 
-# 3. Post review comment (after analysis)
-./scripts/gitlab-mr-comment.sh 123 "## Review Complete
+# 3. Post manual comment
+/gitlab-self-hosted comment 123 "## Review Complete
 
 - Code quality: Good
 - Tests: Passing
-- Ready to merge" -p "my-app"
+- Ready to merge" my-app
 ```
 
 ---

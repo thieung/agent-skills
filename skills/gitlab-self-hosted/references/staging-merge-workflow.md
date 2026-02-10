@@ -40,11 +40,7 @@ git push -u origin temp/<ticket>-merge-to-staging-k8s
 
 ### 5. Create MR via GitLab API
 ```bash
-./scripts/gitlab-mr-create.sh \
-  -s temp/<ticket>-merge-to-staging-k8s \
-  -t staging-k8s \
-  -T "<type>(<ticket>): <description>" \
-  -p <project>
+/gitlab-self-hosted create temp/<ticket>-merge-to-staging-k8s staging-k8s "<type>(<ticket>): <description>" <project>
 ```
 
 ### 6. Checkout back to feature branch
@@ -60,7 +56,7 @@ git stash pop
 ## Branch Naming
 
 - Temp branch: `temp/<ticket>-merge-to-staging-k8s`
-- Extract ticket from feature branch name (e.g., `feat/L3S-150-xxx` -> `L3S-150`)
+- Extract ticket from feature branch name (e.g., `feat/TICKET-123-xxx` → `TICKET-123`)
 
 ## Error Handling
 

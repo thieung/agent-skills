@@ -25,7 +25,7 @@ MR workflow via REST API v4 with PAT authentication.
 - `staging-merge <FEATURE_BRANCH> <PROJECT>`: Merge feature branch to staging-k8s via temp branch
 - `test-cases <FEATURE_BRANCH> <PROJECT>`: Generate test cases checklist from branch diff vs master
 
-**PROJECT**: Can be short name (e.g., `my-app`) or full path (e.g., `group/devs/my-app`)
+**PROJECT**: Can be short name (e.g., `my-app`) or full path (e.g., `group/subgroup/my-app`). Short names auto-prepend `GITLAB_PROJECT_NAMESPACE` from `.env`.
 
 ## Argument Handling
 
@@ -41,11 +41,11 @@ Parse arguments and execute corresponding script:
 | `assign <IID> <USER> <PROJECT>` | `./scripts/gitlab-mr-assign.sh <IID> <USER> -p <PROJECT>` |
 | `unassign <IID> <PROJECT>` | `./scripts/gitlab-mr-assign.sh <IID> --unassign -p <PROJECT>` |
 | `comment <IID> <BODY> <PROJECT>` | `./scripts/gitlab-mr-comment.sh <IID> "<BODY>" -p <PROJECT>` |
-| `review <IID> <PROJECT>` | Run analyze -> read `references/code-review-workflow.md` -> generate review |
-| `staging-merge <BRANCH> <PROJECT>` | Run staging merge workflow -> read `references/staging-merge-workflow.md` |
-| `test-cases <BRANCH> <PROJECT>` | Generate test cases -> read `references/test-cases-generation-workflow.md` |
+| `review <IID> <PROJECT>` | Run analyze → read `references/code-review-workflow.md` → generate review |
+| `staging-merge <BRANCH> <PROJECT>` | Run staging merge workflow → read `references/staging-merge-workflow.md` |
+| `test-cases <BRANCH> <PROJECT>` | Generate test cases → read `references/test-cases-generation-workflow.md` |
 
-**Script base path**: Resolve from `SKILL.md` location (same directory as this file)
+**Script base path**: Relative to this skill's directory.
 
 ## When to Use
 
@@ -80,35 +80,55 @@ Parse arguments and execute corresponding script:
 ### Test Cases Generation
 - **Reference**: `references/test-cases-generation-workflow.md` - Generate test checklist from diff
 
-### Helper Scripts
-- `scripts/gitlab-auth-test.sh` - Validate PAT
-- `scripts/gitlab-mr-get.sh <IID> -p <PROJECT>` - MR details
-- `scripts/gitlab-mr-diff.sh <IID> -p <PROJECT>` - MR changes
-- `scripts/gitlab-mr-create.sh -s <src> -t <tgt> -T <title>` - Create MR
-- `scripts/gitlab-mr-assign.sh <IID> <user>` - Assign MR
-- `scripts/gitlab-mr-comment.sh <IID> "<body>"` - Add comment
-
-## Environment Setup
+## Usage Examples
 
 ```bash
-cp .env.example .env
-# Edit .env with your values
-```
+# Auth
+/gitlab-self-hosted auth
 
-```bash
-export GITLAB_DOMAIN="https://gitlab.your-company.com"
-export GITLAB_TOKEN="glpat-xxxxxxxxxxxx"
-export GITLAB_PROJECT_NAMESPACE="group/subgroup"  # optional
-export GITLAB_PROJECT_ID="group/project"  # optional default
+# Get MR details
+/gitlab-self-hosted get 123 my-app
+
+# Get MR diff
+/gitlab-self-hosted diff 123 my-app
+
+# Create MR
+/gitlab-self-hosted create feature-branch main "Add new feature" my-app
+
+# Assign / Unassign
+/gitlab-self-hosted assign 123 username my-app
+/gitlab-self-hosted unassign 123 my-app
+
+# Comment
+/gitlab-self-hosted comment 123 "LGTM!" my-app
+
+# Full code review
+/gitlab-self-hosted review 123 my-app
+
+# Analyze (read-only)
+/gitlab-self-hosted analyze 123 my-app
+
+# Staging merge
+/gitlab-self-hosted staging-merge feat/TICKET-123-feature my-app
+
+# Generate test cases
+/gitlab-self-hosted test-cases feat/TICKET-123-feature my-app
 ```
 
 ## Workflow: Code Review
 
-1. Get MR: `./scripts/gitlab-mr-get.sh 123 -p mygroup/myproject`
-2. Get diff: `./scripts/gitlab-mr-diff.sh 123 -p mygroup/myproject`
-3. Analyze changes vs codebase patterns
-4. Generate review feedback
-5. Post: `./scripts/gitlab-mr-comment.sh 123 "## Review..."`
+1. Analyze MR: `/gitlab-self-hosted analyze 123 my-app`
+2. Full review: `/gitlab-self-hosted review 123 my-app`
+3. Post comment: `/gitlab-self-hosted comment 123 "## Review..." my-app`
+
+## Environment Setup
+
+```bash
+export GITLAB_DOMAIN="https://gitlab.your-company.com"
+export GITLAB_TOKEN="glpat-xxxxxxxxxxxx"
+export GITLAB_PROJECT_NAMESPACE="group/subgroup"  # optional, auto-prepend for short names
+export GITLAB_PROJECT_ID="group/project"           # optional default
+```
 
 ## Platform Requirements
 
