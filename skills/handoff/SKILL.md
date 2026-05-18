@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: "Preserve and restore cross-session work context. Use when the user asks to hand off, wrap up, checkpoint, save where we are, continue from a previous session, read prior context, or prepare the next session. Writes and reads a compact repo-local `.handoff/handoff.md` so a fresh agent can continue without re-discovery."
+description: "Preserve and restore cross-session work context via a compact repo-local `.handoff/handoff.md`. Use when the user says: hand off, wrap up, checkpoint, save progress, save where we are, continue later, continue from previous session, resume from handoff, pick up where we left off, what did we leave off, where we left off, read the prior handoff, read prior context, load handoff, load previous context, check the handoff file, last session, prepare the next session. Skill writes a handoff on end-of-session and reads it on start-of-session so a fresh agent can continue without re-discovery."
 argument-hint: "[what the next session should focus on]"
 version: 1.0.0
 license: MIT
@@ -41,7 +41,9 @@ For reusable installs, keep the handoff file repo-local. Do not write to the ski
 
 ## Start Session
 
-When the user asks to resume, continue, read handoff, or asks what happened before:
+Trigger phrases (non-exhaustive): "resume", "continue", "continue from previous session", "pick up where we left off", "where we left off", "what did we leave off", "read the prior handoff", "check the handoff file", "load handoff", "load previous context", "what happened before", "last session".
+
+When the user uses any of these or a close variant:
 
 1. Read `.handoff/handoff.md` if it exists.
 2. If it does not exist, say no handoff file was found and start fresh unless the user provides another path.
@@ -53,7 +55,9 @@ When the user asks to resume, continue, read handoff, or asks what happened befo
 
 ## End Session
 
-When the user is wrapping up, says they will continue later, asks to save progress, or context is getting heavy:
+Trigger phrases (non-exhaustive): "hand off", "wrap up", "checkpoint", "save progress", "save where we are", "I'll continue later", "prepare the next session", "context is heavy". Also auto-suggest when context pressure is high without an explicit user trigger.
+
+When any of these apply:
 
 1. Gather facts:
    - If `ck:watzup` was run earlier in this conversation, use its summary as the primary input for `Done`, `In Progress`, `Next Steps`, `Decisions`, `Key Files`, and `Verification`.
