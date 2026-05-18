@@ -59,16 +59,14 @@ Trigger phrases (non-exhaustive): "hand off", "wrap up", "checkpoint", "save pro
 
 When any of these apply:
 
-1. Gather facts:
-   - If `ck:watzup` was run earlier in this conversation, use its summary as the primary input for `Done`, `In Progress`, `Next Steps`, `Decisions`, `Key Files`, and `Verification`.
-   - Do not paste the full `ck:watzup` response. Distill it into the handoff template.
-   - If the `ck:watzup` summary appears stale or incomplete, refresh only the missing facts with targeted git/file checks.
+1. Gather facts (handoff is self-sufficient — collect directly):
    - Current branch and recent git state.
    - `git status --short`.
    - `git diff --stat` when useful.
    - Files read, created, edited, or important for the next session.
    - Decisions, blockers, gotchas, failed attempts worth preserving.
    - The user's original goal and any later scope changes.
+   - **Optional shortcut**: if `/ck:watzup` (ClaudeKit paid skill) happens to have been run earlier in this conversation, reuse its summary as input for `Done`, `In Progress`, `Next Steps`, `Decisions`, `Key Files`, and `Verification` — distill, do not paste. Refresh missing/stale parts with targeted git checks. Do not require or invoke `/ck:watzup` if it was not already run.
 2. If the user supplied arguments, treat them as the next session's intended focus and tailor `Next Steps` around that.
 3. Draft a compact handoff using the template below.
 4. Do not duplicate content already captured in plans, PRDs, ADRs, issues, commits, or reports. Reference those artifacts by path or URL.

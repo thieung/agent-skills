@@ -39,6 +39,10 @@ handoff:
 
 Default mode is `ask`: draft first, save after approval. `yolo` writes directly.
 
+## Optional: `/ck:watzup` Integration
+
+Handoff is self-sufficient — it gathers git state on its own. If you happen to use `/ck:watzup` (a ClaudeKit paid skill that analyzes recent branch activity), and ran it earlier in the same conversation, handoff will reuse its summary instead of re-collecting facts. No requirement to install or run it.
+
 ## Optional SessionStart Hook
 
 ```json
