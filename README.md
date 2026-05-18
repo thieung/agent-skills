@@ -7,6 +7,10 @@ A collection of reusable agent skills for [Claude Code](https://docs.anthropic.c
 ### Option 1: Copy individual skill
 
 ```bash
+# Clone this repo (or pull latest if already cloned)
+git clone https://github.com/thieung/agent-skills.git
+cd agent-skills
+
 # Copy a skill into your project
 cp -r skills/<skill-name> /path/to/your/project/.claude/skills/
 
@@ -19,7 +23,7 @@ cp .env.example .env
 ### Option 2: Git submodule (all skills)
 
 ```bash
-git submodule add https://github.com/user/agent-skills.git .claude/agent-skills
+git submodule add https://github.com/thieung/agent-skills.git .claude/agent-skills
 ```
 
 Then symlink or copy the skills you need into `.claude/skills/`.
