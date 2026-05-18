@@ -1,0 +1,26 @@
+# Session tags — validated advisory (warns on unknown, does not block)
+# Categories align with vault knowledge domains
+
+tags:
+  # Core workflow
+  - wiki
+  - planning
+  - debugging
+  - research
+  - implementation
+  - quick
+
+  # Content creation
+  - writing
+  - content
+  - automation
+
+  # Technical domains
+  - devops
+  - database
+  - frontend
+  - backend
+  - mobile
+  - testing
+  - security
+  - performance
