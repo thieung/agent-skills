@@ -1,0 +1,139 @@
+---
+name: handoff
+description: "Preserve and restore cross-session work context. Use when the user asks to hand off, wrap up, checkpoint, save where we are, continue from a previous session, read prior context, or prepare the next session. Writes and reads a compact repo-local `.handoff/handoff.md` so a fresh agent can continue without re-discovery."
+argument-hint: "[what the next session should focus on]"
+version: 1.0.0
+license: MIT
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+---
+
+# Handoff
+
+Create or consume a compact handoff document so another agent, another session, or future-you can continue the work quickly.
+
+Use this skill only when continuity is the goal. Do not use it for ordinary implementation, code review, or debugging unless the user asks to checkpoint or resume state.
+
+## Paths
+
+Default handoff path:
+
+```text
+.handoff/handoff.md
+```
+
+When reading or writing handoff state, use `.handoff/handoff.md` unless the user explicitly specifies another path.
+
+Optional config:
+
+```yaml
+handoff:
+  mode: ask # ask | yolo
+  include_git_diff: true
+  max_key_files: 20
+```
+
+Default mode is `ask`: show the draft first, then write after approval. If config says `yolo`, write directly and report the path.
+
+For reusable installs, keep the handoff file repo-local. Do not write to the skill directory itself.
+
+## Start Session
+
+When the user asks to resume, continue, read handoff, or asks what happened before:
+
+1. Read `.handoff/handoff.md` if it exists.
+2. If it does not exist, say no handoff file was found and start fresh unless the user provides another path.
+3. Summarize the handoff in 3-6 bullets: branch, goal, in-progress state, blockers, next steps.
+4. Check alignment with the current user request. If the handoff is about a different task, ask whether to use it or start fresh.
+5. Verify before trusting: run lightweight checks such as current branch, `git status --short`, and spot-check 1-2 Key Files.
+6. If aligned and current, continue from `Next Steps`. Do not re-explore files already listed unless the handoff says they are uncertain or stale.
+7. If stale or branch/files do not match, say what is stale and do targeted rediscovery only for the mismatched areas.
+
+## End Session
+
+When the user is wrapping up, says they will continue later, asks to save progress, or context is getting heavy:
+
+1. Gather facts:
+   - If `ck:watzup` was run earlier in this conversation, use its summary as the primary input for `Done`, `In Progress`, `Next Steps`, `Decisions`, `Key Files`, and `Verification`.
+   - Do not paste the full `ck:watzup` response. Distill it into the handoff template.
+   - If the `ck:watzup` summary appears stale or incomplete, refresh only the missing facts with targeted git/file checks.
+   - Current branch and recent git state.
+   - `git status --short`.
+   - `git diff --stat` when useful.
+   - Files read, created, edited, or important for the next session.
+   - Decisions, blockers, gotchas, failed attempts worth preserving.
+   - The user's original goal and any later scope changes.
+2. If the user supplied arguments, treat them as the next session's intended focus and tailor `Next Steps` around that.
+3. Draft a compact handoff using the template below.
+4. Do not duplicate content already captured in plans, PRDs, ADRs, issues, commits, or reports. Reference those artifacts by path or URL.
+5. In `ask` mode, show the draft and ask whether to save or adjust it. In `yolo` mode, write `.handoff/handoff.md` directly.
+
+## Template
+
+```markdown
+# Handoff - [project or task name]
+
+**Updated:** [real ISO 8601 timestamp]
+**Branch:** [current branch]
+**Focus:** [what the next session should continue]
+**Context Pressure:** [low | medium | high]
+
+## Goal
+[One short paragraph. What outcome are we working toward?]
+
+## In Progress
+- [Current partial state, if any. Include exact file refs where useful.]
+
+## Done
+- [Completed work with file:line refs where useful.]
+
+## Next Steps
+1. [Most important next action, concrete enough to execute.]
+2. [Second action.]
+3. [Third action.]
+
+## Blockers
+- [External dependency, failing test, missing decision, or "None".]
+
+## Decisions
+- [Non-obvious choice and why.]
+
+## Key Files
+- `path/to/file` - why it matters; line ref if useful.
+
+## Verification
+- [Command/check run and result, or "Not run".]
+
+## Open Questions
+- [Unresolved question, or "None".]
+```
+
+## Quality Bar
+
+- Target 30-80 lines, under roughly 1k tokens.
+- Favor file paths and line references over pasted code.
+- Do not include full file contents, long code snippets, tool transcripts, or verbose logs.
+- Include only dead ends that prevent repeated mistakes.
+- `Next Steps` must be executable without reading the old chat.
+- A fresh agent should be able to start productive work within 2-3 tool calls after reading the handoff.
+
+## Optional SessionStart Hook
+
+For automatic context injection in Claude Code, add a SessionStart hook that prints the handoff if present:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "if [ -f .handoff/handoff.md ]; then echo '--- PRIOR HANDOFF ---'; cat .handoff/handoff.md; echo '--- END PRIOR HANDOFF ---'; else echo 'No prior handoff.'; fi"
+      }
+    ]
+  }
+}
+```
+
+For project-local hooks, add this to the project settings file. For global hooks, only use it if you are comfortable exposing the current repo's handoff at every new session start.
