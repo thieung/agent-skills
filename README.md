@@ -29,6 +29,9 @@ Then symlink or copy the skills you need into `.claude/skills/`.
 | Skill | Description | Tools |
 |-------|-------------|-------|
 | [gitlab-self-hosted](skills/gitlab-self-hosted/) | GitLab Server MR workflow via REST API v4 - get/create MRs, assign reviewers, post reviews, analyze changes, staging merge, test case generation | `curl`, `jq` |
+| [handoff](skills/handoff/) | Preserve and restore repo-local cross-session context with `.handoff/handoff.md` | file read/write, `git` |
+| [recall](skills/recall/) | Recall Claude Code session history by date, topic, or interactive session-file graph | `python3`, optional `qmd` |
+| [session-sync](skills/session-sync/) | Export Claude Code session JSONL files to searchable markdown with lifecycle notes, resume helpers, and optional QMD indexing | `python3`, optional `qmd` |
 
 ## Skill Structure
 
