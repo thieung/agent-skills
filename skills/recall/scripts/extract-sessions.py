@@ -43,10 +43,31 @@ def _detect_default_source():
             return os.path.join(projects_dir, dirs[0])
     return projects_dir
 
-def _detect_default_output():
-    """Auto-detect output directory for QMD session markdown."""
-    if os.environ.get("RECALL_OUTPUT_DIR"):
-        return os.path.expanduser(os.environ["RECALL_OUTPUT_DIR"])
+def _resolve_target_folder():
+    """Resolve the parent folder that holds 'Claude-Sessions/'.
+
+    Aligned with session-sync skill:
+      1. $CLAUDE_SESSIONS_TARGET_FOLDER
+      2. session-sync config.json target_folder
+      3. $VAULT_DIR (Obsidian vault)
+      4. .obsidian/ walking up from CWD
+      5. ~/Documents (session-sync default)
+    """
+    env = os.environ.get("CLAUDE_SESSIONS_TARGET_FOLDER")
+    if env:
+        return os.path.expanduser(env)
+
+    ss_config = os.path.expanduser("~/.claude/skills/session-sync/config.json")
+    if os.path.isfile(ss_config):
+        try:
+            with open(ss_config) as f:
+                cfg = json.load(f)
+            tgt = cfg.get("target_folder")
+            if tgt:
+                return os.path.expanduser(tgt)
+        except (OSError, ValueError):
+            pass
+
     vault = os.environ.get("VAULT_DIR")
     if not vault:
         cwd = Path(os.getcwd())
@@ -55,8 +76,20 @@ def _detect_default_output():
                 vault = str(parent)
                 break
     if vault:
-        return os.path.join(vault, "Notes", "Projects", "claude-sessions-qmd")
-    return os.path.expanduser("~/claude-sessions-qmd")
+        return os.path.expanduser(vault)
+
+    return os.path.expanduser("~/Documents")
+
+
+def _detect_default_output():
+    """Auto-detect output directory for QMD session markdown.
+
+    Explicit override: $RECALL_OUTPUT_DIR
+    Otherwise: {target_folder}/Claude-Sessions/_recall  (target_folder follows session-sync)
+    """
+    if os.environ.get("RECALL_OUTPUT_DIR"):
+        return os.path.expanduser(os.environ["RECALL_OUTPUT_DIR"])
+    return os.path.join(_resolve_target_folder(), "Claude-Sessions", "_recall")
 
 DEFAULT_SOURCE = _detect_default_source()
 DEFAULT_OUTPUT = _detect_default_output()

@@ -15,8 +15,18 @@ Optional environment overrides:
 ```bash
 export CLAUDE_HOME="$HOME/.claude"
 export CLAUDE_PROJECTS_DIR="$CLAUDE_HOME/projects"
-export VAULT_DIR="/path/to/vault-or-repo"
+export CLAUDE_SESSIONS_TARGET_FOLDER="$HOME/Documents"   # parent of Claude-Sessions/
+export VAULT_DIR="/path/to/obsidian-vault"               # used if target_folder unset
+export RECALL_OUTPUT_DIR=""                              # explicit override for extract-sessions output
 ```
+
+Path resolution for `{target_folder}/Claude-Sessions/` (aligned with `session-sync`):
+
+1. `$CLAUDE_SESSIONS_TARGET_FOLDER`
+2. `~/.claude/skills/session-sync/config.json` → `target_folder`
+3. `$VAULT_DIR`
+4. `.obsidian/` walking up from CWD
+5. `~/Documents` (default)
 
 ## Step 2: Classify Query
 
@@ -60,9 +70,9 @@ Example:
 Run variants across likely QMD collections:
 
 ```bash
-qmd search "VARIANT_1" -c sessions -n 5
-qmd search "VARIANT_2" -c sessions -n 5
-qmd search "VARIANT_3" -c sessions -n 5
+qmd search "VARIANT_1" -c claude-sessions -n 5
+qmd search "VARIANT_2" -c claude-sessions -n 5
+qmd search "VARIANT_3" -c claude-sessions -n 5
 qmd search "VARIANT_1" -c notes -n 5
 qmd search "VARIANT_2" -c notes -n 5
 qmd search "VARIANT_1" -c daily -n 3

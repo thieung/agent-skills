@@ -41,8 +41,11 @@ Defaults work for standard Claude Code installs:
 |----------|---------|---------|
 | `CLAUDE_HOME` | `~/.claude` | Claude Code home |
 | `CLAUDE_PROJECTS_DIR` | `$CLAUDE_HOME/projects` | JSONL session directory |
-| `VAULT_DIR` | detected from cwd if `.obsidian` exists | Path normalization for graph mode |
-| `RECALL_OUTPUT_DIR` | `~/claude-sessions-qmd` or vault path | Output for QMD extraction |
+| `CLAUDE_SESSIONS_TARGET_FOLDER` | from session-sync config.json, or `$VAULT_DIR`, or `~/Documents` | Parent of `Claude-Sessions/` (aligned with session-sync) |
+| `VAULT_DIR` | detected from cwd if `.obsidian` exists | Obsidian vault root; used as target folder fallback and for graph path normalization |
+| `RECALL_OUTPUT_DIR` | `{target_folder}/Claude-Sessions/_recall` | Explicit override for extract-sessions output |
+
+QMD collection name is `claude-sessions` (matches session-sync default). Run `qmd collection add {output_dir} --name claude-sessions` after first extract.
 
 Graph mode requires Python packages in `requirements.txt`:
 
