@@ -48,6 +48,8 @@ Edit the chosen settings file and add:
 
 If `hooks.Stop` already exists, append the hook object instead of replacing other hooks.
 
+**Windows note:** Replace `python3` with `python` (or the absolute path to `python.exe`). The `py -3` launcher also works. Verify with `python --version` first.
+
 Validate JSON:
 
 ```bash

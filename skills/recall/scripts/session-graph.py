@@ -7,7 +7,7 @@ Usage:
 DATE_EXPR: same as recall-day.py (yesterday, "last week", 2026-02-25, etc.)
 --day: filter to specific day within range (e.g. "monday", "2026-02-20")
 
-Outputs interactive HTML to /tmp/session-graph.html and opens in browser.
+Outputs interactive HTML (default: scripts/../output/session-graph.html) and opens in browser.
 Features: Obsidian-style theme, neighbor highlighting on hover, click-to-select
 nodes, copy selected file paths to clipboard.
 """
@@ -15,8 +15,8 @@ nodes, copy selected file paths to clipboard.
 import json
 import os
 import re
-import subprocess
 import sys
+import webbrowser
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -50,7 +50,11 @@ def _detect_vault_prefix():
     return str(cwd) + "/"
 
 VAULT_PREFIX = _detect_vault_prefix()
-SKIP_PREFIXES = ["/tmp/", "/private/tmp/", "/dev/", "/var/", "/usr/"]
+SKIP_PREFIXES = [
+    "/tmp/", "/private/tmp/", "/dev/", "/var/", "/usr/",
+    "C:\\Windows\\", "C:\\Program Files\\", "C:\\ProgramData\\",
+    "C:/Windows/", "C:/Program Files/", "C:/ProgramData/",
+]
 SKIP_PATTERNS = [
     re.compile(r'\.claude/projects/'),
     re.compile(r'node_modules/'),
@@ -1237,7 +1241,7 @@ def main():
     print(f"Saved to {output_path}")
 
     if not args.no_open:
-        subprocess.run(['open', output_path], check=False)
+        webbrowser.open(Path(output_path).resolve().as_uri())
 
 
 if __name__ == '__main__':

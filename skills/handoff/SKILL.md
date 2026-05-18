@@ -123,7 +123,9 @@ When any of these apply:
 
 ## Optional SessionStart Hook
 
-For automatic context injection in Claude Code, add a SessionStart hook that prints the handoff if present:
+For automatic context injection in Claude Code, add a SessionStart hook that prints the handoff if present.
+
+macOS / Linux (bash):
 
 ```json
 {
@@ -132,6 +134,21 @@ For automatic context injection in Claude Code, add a SessionStart hook that pri
       {
         "type": "command",
         "command": "if [ -f .handoff/handoff.md ]; then echo '--- PRIOR HANDOFF ---'; cat .handoff/handoff.md; echo '--- END PRIOR HANDOFF ---'; else echo 'No prior handoff.'; fi"
+      }
+    ]
+  }
+}
+```
+
+Windows (PowerShell):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "powershell -NoProfile -Command \"if (Test-Path .handoff/handoff.md) { Write-Host '--- PRIOR HANDOFF ---'; Get-Content .handoff/handoff.md; Write-Host '--- END PRIOR HANDOFF ---' } else { Write-Host 'No prior handoff.' }\""
       }
     ]
   }
