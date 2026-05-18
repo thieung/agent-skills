@@ -14,6 +14,16 @@ Set a script directory helper:
 RECALL_DIR="$HOME/.claude/skills/recall"
 ```
 
+## Modes
+
+| Mode | Needs session-sync? | Source |
+|---|---|---|
+| Temporal | No | JSONL at `~/.claude/projects/` |
+| Topic    | **Yes** (for QMD index) | QMD collection `claude-sessions` |
+| Graph    | No | JSONL at `~/.claude/projects/` |
+
+Temporal and Graph read JSONL directly. Topic search reuses the QMD index maintained by `session-sync`.
+
 ## Temporal Recall
 
 ```bash
@@ -24,12 +34,22 @@ python3 "$RECALL_DIR/scripts/recall-day.py" expand SESSION_ID
 
 ## Topic Recall
 
-Use QMD:
+Topic mode requires the `session-sync` skill installed and indexed. Setup once:
 
 ```bash
-qmd search "authentication" -c sessions -n 5
-qmd get "qmd://sessions/path/to/file.md" -l 50
+SS="$HOME/.claude/skills/session-sync/scripts/session-sync.py"
+python3 "$SS" export --all
+python3 "$SS" index
 ```
+
+Then search via QMD:
+
+```bash
+qmd search "authentication" -c claude-sessions -n 5
+qmd get "qmd://claude-sessions/path/to/file.md" -l 50
+```
+
+Workflow rule: agent expands the user query into 3-4 keyword variants before searching (BM25 needs exact-ish terms), then dedupes results by path.
 
 ## Graph Recall
 
@@ -42,39 +62,26 @@ python3 -m pip install -r "$RECALL_DIR/requirements.txt"
 Generate graph:
 
 ```bash
-python3 "$RECALL_DIR/scripts/session-graph.py" yesterday --no-open -o /tmp/session-graph.html
+python3 "$RECALL_DIR/scripts/session-graph.py" yesterday --no-open
 ```
 
-## Custom Paths
-
-`recall` aligns with the `session-sync` skill. The QMD output dir defaults to `{target_folder}/Claude-Sessions/_recall/`, where `target_folder` resolves in this order:
-
-1. `$CLAUDE_SESSIONS_TARGET_FOLDER`
-2. `~/.claude/skills/session-sync/config.json` → `target_folder`
-3. `$VAULT_DIR` (Obsidian vault)
-4. `.obsidian/` walking up from CWD
-5. `~/Documents` (matches session-sync default)
-
-Variables:
+## Environment
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `CLAUDE_HOME` | `~/.claude` | Claude Code home |
 | `CLAUDE_PROJECTS_DIR` | `$CLAUDE_HOME/projects` | Raw JSONL transcripts |
-| `CLAUDE_SESSIONS_TARGET_FOLDER` | resolved chain above | Parent of `Claude-Sessions/` |
-| `VAULT_DIR` | detected `.obsidian` walking up CWD | Obsidian vault root |
-| `RECALL_OUTPUT_DIR` | `{target_folder}/Claude-Sessions/_recall` | Explicit override |
-
-Override when needed:
+| `VAULT_DIR` | detected `.obsidian` walking up CWD | Obsidian vault root, used by graph mode to normalize file paths |
 
 ```bash
-export CLAUDE_SESSIONS_TARGET_FOLDER="$HOME/MyVault"
 export CLAUDE_PROJECTS_DIR="/custom/claude/projects"
+export VAULT_DIR="$HOME/MyVault"
 ```
 
-QMD collection name is `claude-sessions` (matches session-sync). After first extract:
+## Semantic Search
+
+When BM25 keyword search returns weak results, fall back to vector search via session-sync:
 
 ```bash
-qmd collection add "$RECALL_OUTPUT_DIR" --name claude-sessions
-qmd update && qmd embed
+python3 "$SS" vsearch "how did we fix the database issue" -n 5
 ```

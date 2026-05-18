@@ -1,6 +1,6 @@
 ---
 name: recall
-description: Load context from Claude Code session history. Temporal queries use native JSONL timelines, topic queries use QMD BM25 search, and "recall graph" creates an interactive session-file graph. Use when users ask to recall prior work, load context, inspect yesterday/last week/session history, search memory by topic, or visualize session relationships.
+description: Load context from Claude Code session history. Temporal queries use native JSONL timelines, topic queries use QMD BM25 search, and "recall graph" creates an interactive session-file graph. Use when users say "recall", "what did we work on", "load context about", "remember when we", "prime context", "yesterday", "what was I doing", "last week", "session history", "recall graph", "session graph", or ask to visualize session relationships.
 version: 1.0.0
 license: MIT
 argument-hint: [yesterday|today|last week|this week|TOPIC|graph DATE_EXPR]
@@ -41,11 +41,9 @@ Defaults work for standard Claude Code installs:
 |----------|---------|---------|
 | `CLAUDE_HOME` | `~/.claude` | Claude Code home |
 | `CLAUDE_PROJECTS_DIR` | `$CLAUDE_HOME/projects` | JSONL session directory |
-| `CLAUDE_SESSIONS_TARGET_FOLDER` | from session-sync config.json, or `$VAULT_DIR`, or `~/Documents` | Parent of `Claude-Sessions/` (aligned with session-sync) |
-| `VAULT_DIR` | detected from cwd if `.obsidian` exists | Obsidian vault root; used as target folder fallback and for graph path normalization |
-| `RECALL_OUTPUT_DIR` | `{target_folder}/Claude-Sessions/_recall` | Explicit override for extract-sessions output |
+| `VAULT_DIR` | detected from cwd if `.obsidian` exists | Obsidian vault root, used by graph mode to normalize file paths |
 
-QMD collection name is `claude-sessions` (matches session-sync default). Run `qmd collection add {output_dir} --name claude-sessions` after first extract.
+Topic search uses the QMD collection `claude-sessions` maintained by the `session-sync` skill. Install and index session-sync first (see "QMD Index" below).
 
 Graph mode requires Python packages in `requirements.txt`:
 
@@ -86,19 +84,22 @@ Deduplicate by document path and present the top unique results.
 
 ```bash
 python3 "$RECALL_DIR/scripts/session-graph.py" yesterday --no-open
-python3 "$RECALL_DIR/scripts/session-graph.py" "last week" --min-files 5 --no-open -o /tmp/session-graph.html
+python3 "$RECALL_DIR/scripts/session-graph.py" "last week" --min-files 5 --no-open -o "$RECALL_DIR/output/session-graph.html"
 ```
 
 Tell the user the output path, node/edge counts, and what clusters/shared files indicate.
 
-## QMD Extraction
+## QMD Index
+
+The QMD collection `claude-sessions` is owned by `session-sync`. Run once:
 
 ```bash
-python3 "$RECALL_DIR/scripts/extract-sessions.py" --days 21 --output /path/to/session-markdown
-qmd collection add /path/to/session-markdown --name sessions
-qmd update
-qmd embed
+SS="$HOME/.claude/skills/session-sync/scripts/session-sync.py"
+python3 "$SS" export --all
+python3 "$SS" index
 ```
+
+The `Stop` hook (see `session-sync/procedures/setup-hook.md`) keeps the collection fresh automatically.
 
 ## Workflow
 

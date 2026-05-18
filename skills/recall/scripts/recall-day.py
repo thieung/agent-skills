@@ -30,7 +30,6 @@ def _default_claude_projects() -> Path:
 
 CLAUDE_PROJECTS = _default_claude_projects()
 
-# Reuse from extract-sessions.py
 STRIP_PATTERNS = [
     re.compile(r'<system-reminder>.*?</system-reminder>', re.DOTALL),
     re.compile(r'<local-command-caveat>.*?</local-command-caveat>', re.DOTALL),

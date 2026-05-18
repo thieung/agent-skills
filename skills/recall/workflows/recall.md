@@ -15,18 +15,10 @@ Optional environment overrides:
 ```bash
 export CLAUDE_HOME="$HOME/.claude"
 export CLAUDE_PROJECTS_DIR="$CLAUDE_HOME/projects"
-export CLAUDE_SESSIONS_TARGET_FOLDER="$HOME/Documents"   # parent of Claude-Sessions/
-export VAULT_DIR="/path/to/obsidian-vault"               # used if target_folder unset
-export RECALL_OUTPUT_DIR=""                              # explicit override for extract-sessions output
+export VAULT_DIR="/path/to/obsidian-vault"   # used by graph mode for path normalization
 ```
 
-Path resolution for `{target_folder}/Claude-Sessions/` (aligned with `session-sync`):
-
-1. `$CLAUDE_SESSIONS_TARGET_FOLDER`
-2. `~/.claude/skills/session-sync/config.json` → `target_folder`
-3. `$VAULT_DIR`
-4. `.obsidian/` walking up from CWD
-5. `~/Documents` (default)
+Topic mode reads from the QMD collection `claude-sessions`, which is owned by `session-sync`. Topic mode does not need a target-folder env var — `session-sync` controls where the markdown lives.
 
 ## Step 2: Classify Query
 
